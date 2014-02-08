@@ -1,7 +1,7 @@
 package com.recallq.parseweblog.fieldparser;
 
-import com.recallq.parseweblog.FieldParser;
 import com.recallq.parseweblog.FieldParserException;
+import com.recallq.parseweblog.SingleResultFieldParser;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,9 +11,9 @@ import java.util.Date;
  * 
  * @author Jeroen De Swaef
  */
-public class LocalTimeFieldParser implements FieldParser {
+public class LocalTimeFieldParser extends SingleResultFieldParser {
     public static final String DATE_FORMAT = "dd/MMM/yyyy:HH:mm:ssZ";
-    
+
     @Override
     public String parse(String input) throws FieldParserException {
         try {
@@ -24,4 +24,5 @@ public class LocalTimeFieldParser implements FieldParser {
             throw new FieldParserException("Cannot convert " + input + " to a valid local_time date", ex);
         }
     }
+
 }

@@ -26,49 +26,46 @@ import joptsimple.OptionSet;
 public class ParseWebLog {
 
     private static final String LOGFILE_PARAMETER = "logfile";
-
     private static final Set<Character> charactersToEscape = new HashSet<Character>() {
         {
             add('[');
             add(']');
         }
     };
-
     private static final Map<String, FieldParser> fieldParsers = new HashMap<String, FieldParser>() {
         {
             put("time_local", new LocalTimeFieldParser());
         }
     };
-    
-    private static List<String> logFieldNames = new ArrayList<String>();
-    
-    // Returns a pattern where all punctuation characters are escaped.
-    static Pattern escaper = Pattern.compile("([\\[\\]])");
+    private static final List<String> logFieldNames = new ArrayList<String>();
 
-    public static String escapeRE(String str) {
+    // Returns a pattern where all punctuation characters are escaped.
+    private static final Pattern escaper = Pattern.compile("([\\[\\]])");
+    private static final Pattern extractVariablePattern = Pattern.compile("\\$[a-zA-Z0-9_]*");
+
+    private static String escapeRE(String str) {
         return escaper.matcher(str).replaceAll("\\\\$1");
     }
 
-    public static void main(String... arguments) {
-        String logFilename = null;
-        OptionParser parser = new OptionParser();
-        parser.accepts(LOGFILE_PARAMETER).withRequiredArg();
+    private final String metaPattern;
+    private final String logFilename;
+    
+    // each item in the map represents a log line
+    // each map entry has as key the name of the nginx log variable
+    // the object in the map can be:
+    // - a String: for single values
+    // - a Map of <String, String>: for values that are being split by FieldParsers
+    private List<Map<String, Object>> logData;
+    
+    public ParseWebLog(String logFilename, String metaPattern) {
+        this.logFilename = logFilename;
+        this.metaPattern = metaPattern;
+    }
 
-        OptionSet options = parser.parse(arguments);
-        if (options.has(LOGFILE_PARAMETER)) {
-            logFilename = (String) options.valueOf(LOGFILE_PARAMETER);
-        }
-        Properties prop = new Properties();
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        InputStream stream = loader.getResourceAsStream("config.properties");
-        try {
-            prop.load(stream);
-        } catch (IOException ex) {
-            Logger.getLogger(ParseWebLog.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        String metaPattern = prop.getProperty("aa");
-        Pattern pattern = Pattern.compile("\\$[a-zA-Z0-9_]*");
-        Matcher matcher = pattern.matcher(metaPattern);
+    public void parseLog() {
+        logData = new ArrayList<Map<String, Object>>();
+        
+        Matcher matcher = extractVariablePattern.matcher(metaPattern);
 
         int parsedPosition = 0;
         StringBuilder parsePatternBuilder = new StringBuilder();
@@ -102,35 +99,65 @@ public class ParseWebLog {
 
         if (logFilename != null) {
             Pattern logFilePattern = Pattern.compile(parsePatternBuilder.toString());
-            BufferedReader br = null;
+            BufferedReader br;
             try {
                 br = new BufferedReader(new FileReader(logFilename));
                 String line;
                 while ((line = br.readLine()) != null) {
+                    Map<String, Object> logLine = new HashMap<String, Object>();
                     Matcher logFileMatcher = logFilePattern.matcher(line);
-                    
+
                     if (logFileMatcher.matches()) {
-                        for(int i = 1; i < logFileMatcher.groupCount(); i++) {
+                        for (int i = 1; i < logFileMatcher.groupCount(); i++) {
                             String logFieldName = logFieldNames.get(i - 1);
                             FieldParser fieldParser = fieldParsers.get(logFieldName);
-                            String fieldValue = null;
+                            Object fieldValue;
                             if (fieldParser != null) {
-                                fieldValue = fieldParser.parse(logFileMatcher.group(i));
+                                if (fieldParser instanceof SingleResultFieldParser) {
+                                    fieldValue = ((SingleResultFieldParser) fieldParser)
+                                            .parse(logFileMatcher.group(i));
+                                } else {
+                                    fieldValue = ((MultipleResultFieldParser) fieldParser)
+                                            .parse(logFileMatcher.group(i));
+                                }
                             } else {
                                 fieldValue = logFileMatcher.group(i);
                             }
-                            System.out.print(fieldValue + "|");
+                            logLine.put(logFieldName, fieldValue);
                         }
-                        System.out.print("\n");
-                   
+                        logData.add(logLine);
                     }
-                    
+
                 }
                 br.close();
             } catch (Exception ex) {
                 Logger.getLogger(ParseWebLog.class.getName()).log(Level.SEVERE, null, ex);
             }
-
+            System.out.println("Parsed #lines:" + logData.size());
         }
+    }
+
+    public static void main(String... arguments) {
+        String logFilename = null;
+        OptionParser parser = new OptionParser();
+        parser.accepts(LOGFILE_PARAMETER).withRequiredArg();
+
+        OptionSet options = parser.parse(arguments);
+        if (options.has(LOGFILE_PARAMETER)) {
+            logFilename = (String) options.valueOf(LOGFILE_PARAMETER);
+        }
+        Properties prop = new Properties();
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        InputStream stream = loader.getResourceAsStream("config.properties");
+        try {
+            prop.load(stream);
+        } catch (IOException ex) {
+            Logger.getLogger(ParseWebLog.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        String metaPattern = prop.getProperty("aa");
+
+        ParseWebLog webLogParser = new ParseWebLog(logFilename, metaPattern);
+        webLogParser.parseLog();
+
     }
 }
