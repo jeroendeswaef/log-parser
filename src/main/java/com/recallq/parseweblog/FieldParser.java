@@ -1,7 +1,5 @@
 package com.recallq.parseweblog;
 
-import java.util.Map;
-
 /**
  * Defines parsers that do transformations on log fields.
  * 
