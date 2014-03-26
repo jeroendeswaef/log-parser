@@ -1,6 +1,7 @@
 package com.recallq.parseweblog;
 
 import com.recallq.parseweblog.fieldparser.LocalTimeFieldParser;
+import com.recallq.parseweblog.fieldparser.RequestFieldParser;
 import com.recallq.parseweblog.outputters.JsonOutputter;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -53,6 +54,7 @@ public class ParseWebLog {
     private static final Map<String, FieldParser> fieldParsers = new HashMap<String, FieldParser>() {
         {
             put("time_local", new LocalTimeFieldParser());
+            put("request", new RequestFieldParser());
         }
     };
     private static final List<String> logFieldNames = new ArrayList<String>();
