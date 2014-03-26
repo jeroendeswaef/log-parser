@@ -13,9 +13,11 @@ Usage
     java -jar target/parseweblog-[version]-jar-with-dependencies.jar --logfile /tmp/access.log
    
 For example, a log line like this:
+
     74.86.158.106 - - [24/Mar/2014:06:33:04 +0100] "GET /en HTTP/1.1" 200 10589 "-" "Mozilla/5.0+(compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)" "-"
 
 will output JSON like this:
+
     {
         "status": "200",
         "remote_user": "-",
