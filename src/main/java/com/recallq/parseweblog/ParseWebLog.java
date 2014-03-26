@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,7 +31,19 @@ public class ParseWebLog {
 
     private static final Logger logger = Logger.getLogger(ParseWebLog.class.getName());
 
+    static {
+        final InputStream inputStream = ParseWebLog.class.getResourceAsStream("/logging.properties");
+        try {
+            LogManager.getLogManager().readConfiguration(inputStream);
+        } catch (final IOException e) {
+            Logger.getAnonymousLogger().severe("Could not load default logging.properties file");
+            Logger.getAnonymousLogger().severe(e.getMessage());
+        }
+    }
+    
     private static final String LOGFILE_PARAMETER = "logfile";
+    private static final String LOG_FORMAT_PROP = "log-format";
+
     private static final Set<Character> charactersToEscape = new HashSet<Character>() {
         {
             add('[');
@@ -174,7 +187,7 @@ public class ParseWebLog {
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "Unable to load config.properties", ex);
         }
-        String metaPattern = prop.getProperty("meta-pattern");
+        String metaPattern = prop.getProperty(LOG_FORMAT_PROP);
         try {
             FileInputStream fstream = new FileInputStream(logFilename);
             ParseWebLog webLogParser = new ParseWebLog(fstream, metaPattern);
