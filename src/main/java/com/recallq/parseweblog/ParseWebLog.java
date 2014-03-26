@@ -27,6 +27,7 @@ import joptsimple.OptionSet;
  * @author Jeroen De Swaef
  */
 public class ParseWebLog {
+
     private static final Logger logger = Logger.getLogger(ParseWebLog.class.getName());
 
     private static final String LOGFILE_PARAMETER = "logfile";
@@ -147,13 +148,24 @@ public class ParseWebLog {
 
     public static void main(String... arguments) {
         String logFilename = null;
-        OptionParser parser = new OptionParser();
-        parser.accepts(LOGFILE_PARAMETER).withRequiredArg();
-
-        OptionSet options = parser.parse(arguments);
-        if (options.has(LOGFILE_PARAMETER)) {
+        OptionParser parser = new OptionParser() {
+            {
+                accepts(LOGFILE_PARAMETER).withRequiredArg().required()
+                        .describedAs("Apache/Nginx log file");
+            }
+        };
+        try {
+            OptionSet options = parser.parse(arguments);
             logFilename = (String) options.valueOf(LOGFILE_PARAMETER);
+        } catch (Exception e) {
+            try {
+                parser.printHelpOn(System.out);
+            } catch (IOException ex) {
+                Logger.getLogger(ParseWebLog.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.exit(1);
         }
+
         Properties prop = new Properties();
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         InputStream stream = loader.getResourceAsStream("config.properties");
@@ -169,7 +181,7 @@ public class ParseWebLog {
             webLogParser.parseLog();
             webLogParser.outputParsedData();
         } catch (FileNotFoundException ex) {
-            logger.log(Level.SEVERE, "Unable to find file {1}", new Object[] { logFilename });
+            logger.log(Level.SEVERE, "Unable to find file {1}", new Object[]{logFilename});
         }
 
     }
