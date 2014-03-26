@@ -1,6 +1,2 @@
-target/classes
-target/maven-archiver
-target/sunfire
-target/sunfire-reports
-target/test-classes
+target/
 nb*.xml
