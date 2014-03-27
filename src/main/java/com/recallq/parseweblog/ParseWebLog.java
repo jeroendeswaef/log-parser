@@ -21,11 +21,13 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 /**
- *
+ * Main class that parses log files and outputs data.
+ * 
  * @author Jeroen De Swaef
  */
 public class ParseWebLog {
@@ -44,7 +46,8 @@ public class ParseWebLog {
     
     private static final String LOGFILE_PARAMETER = "logfile";
     private static final String LOG_FORMAT_PROP = "log-format";
-
+    private static final String GZIP_EXTENSION = "gz";
+    
     private static final Set<Character> charactersToEscape = new HashSet<Character>() {
         {
             add('[');
@@ -77,17 +80,7 @@ public class ParseWebLog {
     // - a Map of <String, String>: for values that are being split by FieldParsers
     private List<Map<String, Object>> logData;
 
-    public List<Map<String, Object>> getLogData() {
-        return logData;
-    }
-
-    public ParseWebLog(InputStream logStream, String metaPattern) {
-        this.logStream = logStream;
-        this.metaPattern = metaPattern;
-    }
-
-    public void parseLog() {
-        logData = new ArrayList<Map<String, Object>>();
+    private Pattern getLogFilePattern(String metaPattern) {
         Matcher matcher = extractVariablePattern.matcher(metaPattern);
         int parsedPosition = 0;
         StringBuilder parsePatternBuilder = new StringBuilder();
@@ -113,6 +106,31 @@ public class ParseWebLog {
             logger.log(Level.FINE, parsePatternBuilder.toString());
         }
         Pattern logFilePattern = Pattern.compile(parsePatternBuilder.toString());
+        return logFilePattern;
+    }
+    
+    private static InputStream getStreamForFilename(String filename) throws FileNotFoundException, IOException {
+        if (filename.endsWith(GZIP_EXTENSION)) {
+            System.out.println("a");
+            return new GZIPInputStream(new FileInputStream(filename));
+        } else {
+             System.out.println("b");
+            return new FileInputStream(filename);
+        }
+    }
+    
+    public List<Map<String, Object>> getLogData() {
+        return logData;
+    }
+
+    public ParseWebLog(InputStream logStream, String metaPattern) {
+        this.logStream = logStream;
+        this.metaPattern = metaPattern;
+    }
+
+    public void parseLog() {
+        logData = new ArrayList<Map<String, Object>>();
+        Pattern logFilePattern = getLogFilePattern(metaPattern);
         BufferedReader br;
         try {
             br = new BufferedReader(new InputStreamReader(logStream));
@@ -191,12 +209,14 @@ public class ParseWebLog {
         }
         String metaPattern = prop.getProperty(LOG_FORMAT_PROP);
         try {
-            FileInputStream fstream = new FileInputStream(logFilename);
+            InputStream fstream = getStreamForFilename(logFilename);
             ParseWebLog webLogParser = new ParseWebLog(fstream, metaPattern);
             webLogParser.parseLog();
             webLogParser.outputParsedData();
         } catch (FileNotFoundException ex) {
-            logger.log(Level.SEVERE, "Unable to find file {1}", new Object[]{logFilename});
+            logger.log(Level.SEVERE, "Unable to find file {0}", new Object[]{logFilename});
+        } catch (IOException ex1) {
+            logger.log(Level.SEVERE, "Error while reading file " + logFilename, ex1);
         }
 
     }
