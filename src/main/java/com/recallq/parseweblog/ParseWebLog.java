@@ -45,6 +45,7 @@ public class ParseWebLog {
     }
     
     private static final String LOGFILE_PARAMETER = "logfile";
+    private static final String CONFIG_PROPERTIES_PARAMETER = "config";
     private static final String LOG_FORMAT_PROP = "log-format";
     private static final String GZIP_EXTENSION = "gz";
     
@@ -111,10 +112,8 @@ public class ParseWebLog {
     
     private static InputStream getStreamForFilename(String filename) throws FileNotFoundException, IOException {
         if (filename.endsWith(GZIP_EXTENSION)) {
-            System.out.println("a");
             return new GZIPInputStream(new FileInputStream(filename));
         } else {
-             System.out.println("b");
             return new FileInputStream(filename);
         }
     }
@@ -181,14 +180,17 @@ public class ParseWebLog {
 
     public static void main(String... arguments) {
         String logFilename = null;
+        OptionSet options = null;
         OptionParser parser = new OptionParser() {
             {
                 accepts(LOGFILE_PARAMETER).withRequiredArg().required()
                         .describedAs("Apache/Nginx log file");
+                accepts(CONFIG_PROPERTIES_PARAMETER).withRequiredArg()
+                        .describedAs("Configuration file");
             }
         };
         try {
-            OptionSet options = parser.parse(arguments);
+            options = parser.parse(arguments);
             logFilename = (String) options.valueOf(LOGFILE_PARAMETER);
         } catch (Exception e) {
             try {
@@ -200,10 +202,22 @@ public class ParseWebLog {
         }
 
         Properties prop = new Properties();
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        InputStream stream = loader.getResourceAsStream("config.properties");
+        InputStream configStream = null;
+        if (options.has(CONFIG_PROPERTIES_PARAMETER)) {
+            String configFilename = (String) options.valueOf(CONFIG_PROPERTIES_PARAMETER);
+            try {
+                configStream = new FileInputStream(configFilename);
+            } catch (FileNotFoundException ex) {
+                logger.log(Level.SEVERE, "Couldn''t open config file {0}", configFilename);
+                System.exit(1);
+            }
+        } 
+        if (configStream == null) {
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            configStream = loader.getResourceAsStream("config.properties");
+        }
         try {
-            prop.load(stream);
+            prop.load(configStream);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "Unable to load config.properties", ex);
         }
