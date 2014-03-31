@@ -48,6 +48,7 @@ public class ParseWebLog {
     private static final String CONFIG_PROPERTIES_PARAMETER = "config";
     private static final String LOG_FORMAT_PROP = "log-format";
     private static final String GZIP_EXTENSION = "gz";
+    private static final String SOLR_PARAMETER = "solr";
     
     private static final Set<Character> charactersToEscape = new HashSet<Character>() {
         {
@@ -73,14 +74,15 @@ public class ParseWebLog {
 
     private final String metaPattern;
     private final InputStream logStream;
-
+    private Outputter outputter;
+    
     // each item in the map represents a log line
     // each map entry has as key the name of the nginx log variable
     // the object in the map can be:
     // - a String: for single values
     // - a Map of <String, String>: for values that are being split by FieldParsers
     private List<Map<String, Object>> logData;
-
+    
     private Pattern getLogFilePattern(String metaPattern) {
         Matcher matcher = extractVariablePattern.matcher(metaPattern);
         int parsedPosition = 0;
@@ -169,29 +171,32 @@ public class ParseWebLog {
         }
     }
 
-    public void outputParsedData() {
-        JsonOutputter outputter = new JsonOutputter();
+    public void outputParsedData(Outputter outputter) {
         try {
-            outputter.outputData(logData, System.out);
+            outputter.outputData(logData);
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Error outputting in JSON", ex);
+            logger.log(Level.SEVERE, "Error outputting log data using " + outputter.getClass().getName(), ex);
         }
     }
 
     public static void main(String... arguments) {
         String logFilename = null;
         OptionSet options = null;
+        Outputter outputter = null;
         OptionParser parser = new OptionParser() {
             {
                 accepts(LOGFILE_PARAMETER).withRequiredArg().required()
                         .describedAs("Apache/Nginx log file");
                 accepts(CONFIG_PROPERTIES_PARAMETER).withRequiredArg()
                         .describedAs("Configuration file");
+                accepts(SOLR_PARAMETER).withRequiredArg()
+                        .describedAs("Solr endpoint");
             }
         };
         try {
             options = parser.parse(arguments);
             logFilename = (String) options.valueOf(LOGFILE_PARAMETER);
+            outputter = OutputterFactory.getInstance().createFromOptions(options);
         } catch (Exception e) {
             try {
                 parser.printHelpOn(System.out);
@@ -226,7 +231,7 @@ public class ParseWebLog {
             InputStream fstream = getStreamForFilename(logFilename);
             ParseWebLog webLogParser = new ParseWebLog(fstream, metaPattern);
             webLogParser.parseLog();
-            webLogParser.outputParsedData();
+            webLogParser.outputParsedData(outputter);
         } catch (FileNotFoundException ex) {
             logger.log(Level.SEVERE, "Unable to find file {0}", new Object[]{logFilename});
         } catch (IOException ex1) {

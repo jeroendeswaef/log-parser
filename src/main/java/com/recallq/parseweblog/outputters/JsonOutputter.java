@@ -14,8 +14,14 @@ import java.util.Map;
  */
 public class JsonOutputter implements Outputter {
 
+    private OutputStream os;
+    
+    public JsonOutputter(OutputStream os) {
+        this.os = os;
+    }
+    
     @Override
-    public void outputData(List<Map<String, Object>> logData, OutputStream os) throws IOException {
+    public void outputData(List<Map<String, Object>> logData) throws IOException {
         Gson gson = new Gson();
         String jsonStr = gson.toJson(logData);
         os.write(jsonStr.getBytes());

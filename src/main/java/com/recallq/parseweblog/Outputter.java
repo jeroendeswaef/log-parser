@@ -15,8 +15,8 @@ public interface Outputter {
     * @param logData A list for each log line a map with:
     *    - key: log variable
     *    - value: String/Map<String, String>: value(s) being logged.
-     * @param os The stream to write to.
-     * @throws java.io.IOException
+    * 
+    * @throws java.io.IOException
     */
-    void outputData(List<Map<String, Object>> logData, OutputStream os) throws IOException ;
+    void outputData(List<Map<String, Object>> logData) throws IOException ;
 }
