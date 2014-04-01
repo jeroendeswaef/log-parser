@@ -15,11 +15,11 @@ public class LocalTimeFieldParser extends SingleResultFieldParser {
     public static final String DATE_FORMAT = "dd/MMM/yyyy:HH:mm:ssZ";
 
     @Override
-    public String parse(String input) throws FieldParserException {
+    public Object parse(String input) throws FieldParserException {
         try {
             SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
             Date d = format.parse(input);
-            return String.valueOf(d.getTime());
+            return d.getTime();
         } catch (ParseException ex) {
             throw new FieldParserException("Cannot convert " + input + " to a valid local_time date", ex);
         }

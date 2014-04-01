@@ -18,8 +18,8 @@ public class LocalTimeFieldParserTest {
     public void testParse() throws FieldParserException {
         String input = "24/Mar/2014:06:59:28 +0100";
         LocalTimeFieldParser instance = new LocalTimeFieldParser();
-        String expResult = "1395640768000";
-        String result = instance.parse(input);
+        Long expResult = 1395640768000L;
+        Long result = (Long) instance.parse(input);
         assertEquals(expResult, result);
     }
     

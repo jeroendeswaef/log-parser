@@ -16,7 +16,7 @@ public class ISO8601DateFieldParserTest {
         String input = "2014-03-25T01:04:11+00:00";
         ISO8601DateFieldParser instance = new ISO8601DateFieldParser();
         String expResult = "1395709451000";
-        String result = instance.parse(input);
+        String result = (String) instance.parse(input);
         assertEquals(expResult, result);
     }
     

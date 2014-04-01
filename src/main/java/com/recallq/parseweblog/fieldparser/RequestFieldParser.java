@@ -19,14 +19,14 @@ public class RequestFieldParser extends MultipleResultFieldParser {
     public static final String KEY_HTTP = "http";
     
     @Override
-    public Map<String, String> parse(String input) throws FieldParserException {
+    public Map<String, Object> parse(String input) throws FieldParserException {
         String[] parts = input.split(" ");
         if (parts.length != 3) {
             throw new FieldParserException(String.format(
                     "Unexpected #parts for RequestFieldParser: %d parts for %s",
                     parts.length, input), null);
         }
-        Map<String, String> fields = new HashMap<String, String>();
+        Map<String, Object> fields = new HashMap<String, Object>();
         fields.put(KEY_METHOD, parts[0]);
         fields.put(KEY_URL, parts[1]);
         fields.put(KEY_HTTP, parts[2]);

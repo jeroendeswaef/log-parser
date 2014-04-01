@@ -16,5 +16,5 @@ public abstract class MultipleResultFieldParser implements FieldParser {
         return false;
     }
     
-    public abstract Map<String, String> parse(String input) throws FieldParserException;
+    public abstract Map<String, Object> parse(String input) throws FieldParserException;
 }

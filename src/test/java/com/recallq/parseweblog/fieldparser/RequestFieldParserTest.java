@@ -20,7 +20,7 @@ public class RequestFieldParserTest {
     public void testParse() throws Exception {
         String input = "GET /misc/drupal.js?myviua HTTP/1.1";
         RequestFieldParser instance = new RequestFieldParser();
-        Map<String, String> result = instance.parse(input);
+        Map<String, Object> result = instance.parse(input);
         assertEquals(3, result.keySet().size());
         assertEquals("GET", result.get("method"));
         assertEquals("/misc/drupal.js?myviua", result.get("url"));

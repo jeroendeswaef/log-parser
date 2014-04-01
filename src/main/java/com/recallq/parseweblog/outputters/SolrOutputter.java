@@ -91,13 +91,15 @@ public class SolrOutputter implements Outputter {
         httpclient.addRequestInterceptor(
                 new PreemptiveAuthInterceptor(), 0);
 
+        HttpSolrServer server;
         if (this.solrUsername != null) {
             httpclient.getCredentialsProvider().setCredentials(
                     AuthScope.ANY,
                     new UsernamePasswordCredentials(solrUsername, solrPassword));
+            server = new HttpSolrServer(solrUrl, httpclient);
+        } else {
+            server = new HttpSolrServer(solrUrl);
         }
-
-        HttpSolrServer server = new HttpSolrServer(solrUrl, httpclient);
 
         server.setMaxRetries(1); // defaults to 0.  > 1 not recommended.
         server.setConnectionTimeout(15000); // 5 seconds to establish TCP
@@ -121,11 +123,13 @@ public class SolrOutputter implements Outputter {
             doc.addField("id", uuid);
             for (Map.Entry<String, Object> logField : logEntry.entrySet()) {
                 Object value = logField.getValue();
-
-                if (value instanceof String) {
+                if (value instanceof Map) {
+                   for (Map.Entry<String, Object> mapEntry: ((Map<String, Object>) value).entrySet()) {
+                       String composedKey = (logField.getKey() + "-" + mapEntry.getKey());
+                       doc.addField(composedKey, mapEntry.getValue());
+                   }
+                } else {
                     doc.addField(logField.getKey(), value);
-                } else if (value instanceof Map) {
-
                 }
             }
 

@@ -22,7 +22,7 @@ public class ParseWebLogTest {
         ParseWebLog instance = new ParseWebLog(is, metaPattern);
         instance.parseLog();
         assertEquals(4, instance.getLogData().size());
-        assertEquals("1395640768000", instance.getLogData().get(2).get("time_local"));
+        assertEquals(1395640768000L, instance.getLogData().get(2).get("time_local"));
         Map<String, String> request = (Map<String, String>) instance.getLogData().get(2).get("request");
         assertEquals("/misc/jquery.once.js?v=1.2", request.get("url"));
     }

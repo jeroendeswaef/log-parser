@@ -11,5 +11,5 @@ public abstract class SingleResultFieldParser implements FieldParser {
         return true;
     }
     
-    public abstract String parse(String input) throws FieldParserException;
+    public abstract Object parse(String input) throws FieldParserException;
 }

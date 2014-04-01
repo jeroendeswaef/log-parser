@@ -12,7 +12,7 @@ import org.joda.time.format.ISODateTimeFormat;
 public class ISO8601DateFieldParser extends SingleResultFieldParser {
 
     @Override
-    public String parse(String input) {
+    public Object parse(String input) {
         DateTimeFormatter parser2 = ISODateTimeFormat.dateTimeNoMillis();
         return String.valueOf(parser2.parseDateTime(input).toDate().getTime());
     }
