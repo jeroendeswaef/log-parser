@@ -109,11 +109,11 @@ public class SolrOutputter implements Outputter {
         // Server side must support gzip or deflate for this to have any effect.
         server.setAllowCompression(true);
 
-        try {
+        /*try {
             server.deleteByQuery("*:*");// CAUTION: deletes everything!
         } catch (SolrServerException ex) {
             Logger.getLogger(SolrOutputter.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }*/
 
         Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
 
