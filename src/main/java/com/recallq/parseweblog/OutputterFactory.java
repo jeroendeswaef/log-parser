@@ -25,9 +25,16 @@ public class OutputterFactory {
     
     public Outputter createFromOptions(OptionSet options) {
         Outputter outputter;
-        if (options.hasArgument("solr")) {
-            String endpoint = (String) options.valueOf("solr");
-            outputter = new SolrOutputter(endpoint);
+        if (options.hasArgument(Constants.SOLR_PARAMETER)) {
+            String endpoint = (String) options.valueOf(Constants.SOLR_PARAMETER);
+            if (options.hasArgument(Constants.SOLR_USER_PARAMETER) 
+                    && options.hasArgument(Constants.SOLR_PASSWORD_PARAMETER)) {
+                String userName = (String) options.valueOf(Constants.SOLR_USER_PARAMETER);
+                String password = (String) options.valueOf(Constants.SOLR_PASSWORD_PARAMETER);
+                outputter = new SolrOutputter(endpoint, userName, password);
+            } else {
+                outputter = new SolrOutputter(endpoint);
+            }
         } else {
             outputter = new JsonOutputter(System.out);
         }

@@ -48,7 +48,6 @@ public class ParseWebLog {
     private static final String CONFIG_PROPERTIES_PARAMETER = "config";
     private static final String LOG_FORMAT_PROP = "log-format";
     private static final String GZIP_EXTENSION = "gz";
-    private static final String SOLR_PARAMETER = "solr";
     
     private static final Set<Character> charactersToEscape = new HashSet<Character>() {
         {
@@ -189,8 +188,12 @@ public class ParseWebLog {
                         .describedAs("Apache/Nginx log file");
                 accepts(CONFIG_PROPERTIES_PARAMETER).withRequiredArg()
                         .describedAs("Configuration file");
-                accepts(SOLR_PARAMETER).withRequiredArg()
+                accepts(Constants.SOLR_PARAMETER).withRequiredArg()
                         .describedAs("Solr endpoint");
+                accepts(Constants.SOLR_USER_PARAMETER).withRequiredArg()
+                        .describedAs("User to connect to the solr server");
+                accepts(Constants.SOLR_PASSWORD_PARAMETER).withRequiredArg()
+                        .describedAs("Password for the user connecting to solr");
             }
         };
         try {
