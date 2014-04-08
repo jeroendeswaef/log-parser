@@ -20,16 +20,15 @@ public class RequestFieldParser extends MultipleResultFieldParser {
     
     @Override
     public Map<String, Object> parse(String input) throws FieldParserException {
-        String[] parts = input.split(" ");
-        if (parts.length != 3) {
-            throw new FieldParserException(String.format(
-                    "Unexpected #parts for RequestFieldParser: %d parts for %s",
-                    parts.length, input), null);
-        }
         Map<String, Object> fields = new HashMap<String, Object>();
-        fields.put(KEY_METHOD, parts[0]);
-        fields.put(KEY_URL, parts[1]);
-        fields.put(KEY_HTTP, parts[2]);
+        String[] parts = input.split(" ");
+        if (parts.length == 3) {
+            fields.put(KEY_METHOD, parts[0]);
+            fields.put(KEY_URL, parts[1]);
+            fields.put(KEY_HTTP, parts[2]);
+            
+        }
+
         return fields;
     }
     
